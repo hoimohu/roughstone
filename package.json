@@ -1,0 +1,27 @@
+{
+  "name": "roughstone",
+  "version": "0.0.1",
+  "description": "TypeScriptで書いたTetris",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx webpack serve --mode=development",
+    "build": "npx webpack --mode=production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoimohu/roughstone.git"
+  },
+  "author": "hoimohu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hoimohu/roughstone/issues"
+  },
+  "homepage": "https://github.com/hoimohu/roughstone#readme",
+  "devDependencies": {
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  }
+}

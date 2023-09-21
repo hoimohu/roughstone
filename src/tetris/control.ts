@@ -36,13 +36,15 @@ export class Control {
     freeFall: number = 60;
     /**ロックダウンまでの時間(フレーム数) */
     lockDownTimer: number = 30;
+    /**ロックダウン待機中かどうか */
+    waitinglockDown: boolean = false;
     /**強制ロックダウンまでの動ける回数 */
     lockDownCount: number = 15;
     /**現在のミノの最低高度 */
-    currentLowestHeight: number;
+    currentLowestHeight: number = 0;
 
     /**水平移動の方向 */
-    moveDirection: 'counterclockwise' | 'clockwise';
+    moveDirection: 'left' | 'right' | 'idle' = 'idle';
 
     /**残りのDAS */
     remainingDAS: number;
@@ -69,26 +71,27 @@ export class Control {
         this.remainingDCD = 0;
         this.remainingFreeFall = this.freeFall;
         this.remaininglockDownCount = this.lockDownCount;
+        this.waitinglockDown = false;
 
         this.GM = gamemaster;
     }
 
     /**操作制御のループ */
     controlLoop() {
-        if (this.GM.gameRunning) {
-            // 60fpsで実行
-            setTimeout(() => {
+        // 60fpsで実行
+        setTimeout(() => {
+            if (this.GM.gameRunning) {
                 if (0 < this.waitFrames) {
                     this.waitFrames--;
                 } else {
                     if (this.pressingRight || this.pressingLeft) {
                         // 動かす向きの判定
-                        if (this.pressingRight && !this.pressingLeft && this.moveDirection !== 'clockwise') {
-                            this.moveDirection = 'clockwise';
-                            this.moveMino();
-                        } else if (!this.pressingRight && this.pressingLeft && this.moveDirection !== 'counterclockwise') {
-                            this.moveDirection = 'counterclockwise';
-                            this.moveMino();
+                        if (this.pressingRight && !this.pressingLeft && this.moveDirection !== 'right') {
+                            this.moveDirection = 'right';
+                            this.moveMinoHorizontally();
+                        } else if (!this.pressingRight && this.pressingLeft && this.moveDirection !== 'left') {
+                            this.moveDirection = 'left';
+                            this.moveMinoHorizontally();
                         }
                         if (0 < this.remainingDCD) {
                             // まずDCDを消費
@@ -102,7 +105,7 @@ export class Control {
                                 this.remainingARR--;
                             } else {
                                 // ARR移動(早く移動するやつ)
-                                this.moveMino();
+                                this.moveMinoHorizontally();
                                 this.remainingARR = this.ARR;
                             }
                         }
@@ -110,21 +113,24 @@ export class Control {
                         // それぞれの値をリセット
                         this.remainingDAS = this.DAS;
                         this.remainingARR = this.ARR;
+
+                        this.moveDirection = 'idle';
                     }
                     // ソフトドロップ
-                    if (this.pressingDown) {
+                    if (this.pressingDown && !this.waitinglockDown) {
                         this.remainingFreeFall -= this.SDF;
                     } else {
                         this.remainingFreeFall--;
                     }
                     if (this.remainingFreeFall <= 0) {
                         // ソフトドロップする
-                        const condition = this.GM.availableMino.softdrop();
+                        const condition = this.GM.currentMino.softdrop(this.pressingDown);
                         if (condition) {
                             // ソフトドロップ成功
-                            if (this.GM.availableMino.softDroppable) {
+                            if (this.GM.currentMino.softDroppable) {
                                 // 地面すれすれじゃないなら、自由落下タイマーをリセット
                                 this.remainingFreeFall = this.freeFall;
+                                this.waitinglockDown = false;
                             } else {
                                 // 地面すれすれ状態なら
                                 if (this.remaininglockDownCount <= 0) {
@@ -133,11 +139,12 @@ export class Control {
                                 } else {
                                     // 自由落下タイマーを lockDownTimer の値にする
                                     this.remainingFreeFall = this.lockDownTimer;
+                                    this.waitinglockDown = true;
                                 }
                             }
-                            if (this.GM.availableMino.y < this.currentLowestHeight) {
+                            if (this.GM.currentMino.y < this.currentLowestHeight) {
                                 // 最低高度を更新したとき
-                                this.currentLowestHeight = this.GM.availableMino.y;
+                                this.currentLowestHeight = this.GM.currentMino.y;
                                 this.remaininglockDownCount = this.lockDownCount;
                             }
                         } else {
@@ -146,8 +153,10 @@ export class Control {
                         }
                     }
                 }
-            }, 1000 / 60);
-        }
+                this.GM.controlLoopedCount++;
+            }
+            this.controlLoop();
+        }, 1000 / 60);
     }
 
     /**次のターンへ */
@@ -158,24 +167,28 @@ export class Control {
             this.remainingDCD = this.DCD;
             this.remainingFreeFall = this.freeFall;
             this.remaininglockDownCount = this.lockDownCount;
+            this.waitinglockDown = false;
 
             this.GM.turn.nextTurn();
         }
     }
 
     /**ミノを moveDirection の方向に動かす */
-    moveMino() {
+    moveMinoHorizontally() {
         if (this.GM.gameRunning) {
-            const condition = this.GM.availableMino.moveHorizontally(this.moveDirection);
-            if (condition) {
-                // 移動成功
-                this.remaininglockDownCount--;
+            if (this.moveDirection !== 'idle') {
+                const condition = this.GM.currentMino.moveHorizontally(this.moveDirection);
+                if (condition) {
+                    // 移動成功
+                    this.remaininglockDownCount--;
 
-                if (!this.GM.availableMino.softDroppable) {
-                    // 地面すれすれ状態なら、自由落下タイマーを lockDownTimer の値にする
-                    this.remainingFreeFall = this.lockDownTimer;
-                } else {
-                    this.remainingFreeFall = this.freeFall;
+                    if (!this.GM.currentMino.softDroppable) {
+                        // 地面すれすれ状態なら、自由落下タイマーを lockDownTimer の値にする
+                        this.remainingFreeFall = this.lockDownTimer;
+                        this.waitinglockDown = true;
+                    } else {
+                        this.waitinglockDown = false;
+                    }
                 }
             }
         }
@@ -184,16 +197,17 @@ export class Control {
     /**右回転 */
     rotateClockwise() {
         if (this.GM.gameRunning) {
-            const condition = this.GM.availableMino.rotate('clockwise');
+            const condition = this.GM.currentMino.rotate('clockwise');
             if (condition) {
                 // 回転成功
                 this.remaininglockDownCount--;
 
-                if (!this.GM.availableMino.softDroppable) {
+                if (!this.GM.currentMino.softDroppable) {
                     // 地面すれすれ状態なら、自由落下タイマーを lockDownTimer の値にする
                     this.remainingFreeFall = this.lockDownTimer;
+                    this.waitinglockDown = true;
                 } else {
-                    this.remainingFreeFall = this.freeFall;
+                    this.waitinglockDown = false;
                 }
             }
         }
@@ -201,18 +215,26 @@ export class Control {
     /**左回転 */
     rotateCounterclockwise() {
         if (this.GM.gameRunning) {
-            const condition = this.GM.availableMino.rotate('counterclockwise');
+            const condition = this.GM.currentMino.rotate('counterclockwise');
             if (condition) {
                 // 回転成功
                 this.remaininglockDownCount--;
 
-                if (!this.GM.availableMino.softDroppable) {
+                if (!this.GM.currentMino.softDroppable) {
                     // 地面すれすれ状態なら、自由落下タイマーを lockDownTimer の値にする
                     this.remainingFreeFall = this.lockDownTimer;
+                    this.waitinglockDown = true;
                 } else {
-                    this.remainingFreeFall = this.freeFall;
+                    this.waitinglockDown = false;
                 }
             }
+        }
+    }
+
+    /**ホールドを使う */
+    holdKey() {
+        if (this.GM.gameRunning) {
+            this.GM.useHold();
         }
     }
 
@@ -220,7 +242,7 @@ export class Control {
     harddropKey() {
         if (this.GM.gameRunning) {
             this.remainingDCD = this.DCD;
-            this.GM.availableMino.harddrop();
+            this.GM.currentMino.harddrop();
             this.lockAndNextTurn();
         }
     }
@@ -229,7 +251,12 @@ export class Control {
     rightKeyDown() {
         if (this.GM.gameRunning) {
             this.pressingRight = true;
-            this.moveDirection = 'clockwise';
+            if (this.moveDirection === 'idle') {
+                this.moveDirection = 'right';
+                this.moveMinoHorizontally();
+            } else {
+                this.moveDirection = 'right';
+            }
         }
     }
     rightKeyUp() {
@@ -240,7 +267,12 @@ export class Control {
     leftKeyDown() {
         if (this.GM.gameRunning) {
             this.pressingLeft = true;
-            this.moveDirection = 'counterclockwise';
+            if (this.moveDirection === 'idle') {
+                this.moveDirection = 'left';
+                this.moveMinoHorizontally();
+            } else {
+                this.moveDirection = 'left';
+            }
         }
     }
     leftKeyUp() {

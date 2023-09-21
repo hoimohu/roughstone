@@ -12,11 +12,11 @@ export class Turn extends Bag {
 
     nextTurn() {
         // 盤面にミノを設置する
-        this.GM.fill(this.GM.availableMino.myPosition, this.GM.availableMino.minoType);
-        this.GM.availableMino.locked = true;
+        this.GM.fill(this.GM.currentMino.myPosition, this.GM.currentMino.minoType);
+        this.GM.currentMino.locked = true;
 
         // ゲームオーバー判定 その1
-        if (!this.GM.availableMino.myPosition.some(a => a[1] < 20)) {
+        if (!this.GM.currentMino.myPosition.some(a => a[1] < 20)) {
             // 1. 完全に画面外ミノを置いた場合はゲームオーバー
             this.GM.gameover();
 
@@ -28,12 +28,10 @@ export class Turn extends Bag {
         let clearedLinesCount = 0;
         for (let i = 0; i < this.GM.board.length; i++) {
             const e = this.GM.board[i];
-            if (e.join('') === '') {
+            if (!e.some(v => v === '')) {
                 clearedLinesCount++;
 
-                // 埋まっている列を消す
-                this.GM.board.splice(i, 1);
-                // 消した分だけ盤面配列に挿入
+                // 消す分だけ盤面配列に新しい列を挿入
                 const newRow: string[] = [];
                 for (let columnCount = 0; columnCount < this.GM.width; columnCount++) {
                     newRow.push('');
@@ -41,6 +39,8 @@ export class Turn extends Bag {
                 this.GM.board.push(newRow);
             }
         }
+        // 埋まっている列を消す
+        this.GM.board = this.GM.board.filter(a => a.some(v => v === ''));
 
         // スコアと攻撃力の計算
         /**スコア */
@@ -50,8 +50,8 @@ export class Turn extends Bag {
         /**パーフェクトクリアしているか */
         let perfectClear: boolean = false;
         // 基礎点
-        if (this.GM.availableMino.tspin) {
-            if (!this.GM.availableMino.tspinMini) {
+        if (this.GM.currentMino.tspin) {
+            if (!this.GM.currentMino.tspinMini) {
                 switch (clearedLinesCount) {
                     case 0:
                         score += this.GM.scoreList.tspin;
@@ -110,7 +110,7 @@ export class Turn extends Bag {
             }
         }
         // BtBボーナス
-        if (4 <= clearedLinesCount || this.GM.availableMino.tspin) {
+        if (4 <= clearedLinesCount || this.GM.currentMino.tspin) {
             if (this.GM.backToBack) {
                 score *= 1.5;
                 attack += 1;
@@ -140,7 +140,7 @@ export class Turn extends Bag {
             attack = 10;
         }
         // T-Spin Miniボーナス点
-        if (this.GM.availableMino.tspinMini) {
+        if (this.GM.currentMino.tspinMini) {
             score += 100;
         }
 
@@ -212,7 +212,7 @@ export class Turn extends Bag {
         }
 
         // 次のミノを出現させる
-        this.GM.changeAvailableMino(nextMino);
+        this.GM.changeCurrentMino(nextMino);
 
         return true;
     }
