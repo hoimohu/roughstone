@@ -1,0 +1,219 @@
+import { Gamemaster } from "./gamemaster";
+import { Bag } from "./bag";
+
+export class Turn extends Bag {
+    /**Gamemaster */
+    GM: Gamemaster;
+
+    constructor(gamemaster: Gamemaster) {
+        super();
+        this.GM = gamemaster;
+    }
+
+    nextTurn() {
+        // 盤面にミノを設置する
+        this.GM.fill(this.GM.availableMino.myPosition, this.GM.availableMino.minoType);
+        this.GM.availableMino.locked = true;
+
+        // ゲームオーバー判定 その1
+        if (!this.GM.availableMino.myPosition.some(a => a[1] < 20)) {
+            // 1. 完全に画面外ミノを置いた場合はゲームオーバー
+            this.GM.gameover();
+
+            // ゲームオーバーなのでここまで
+            return false;
+        }
+
+        /**消したラインの数 */
+        let clearedLinesCount = 0;
+        for (let i = 0; i < this.GM.board.length; i++) {
+            const e = this.GM.board[i];
+            if (e.join('') === '') {
+                clearedLinesCount++;
+
+                // 埋まっている列を消す
+                this.GM.board.splice(i, 1);
+                // 消した分だけ盤面配列に挿入
+                const newRow: string[] = [];
+                for (let columnCount = 0; columnCount < this.GM.width; columnCount++) {
+                    newRow.push('');
+                }
+                this.GM.board.push(newRow);
+            }
+        }
+
+        // スコアと攻撃力の計算
+        /**スコア */
+        let score: number = 0;
+        /**攻撃 */
+        let attack: number = 0;
+        /**パーフェクトクリアしているか */
+        let perfectClear: boolean = false;
+        // 基礎点
+        if (this.GM.availableMino.tspin) {
+            if (!this.GM.availableMino.tspinMini) {
+                switch (clearedLinesCount) {
+                    case 0:
+                        score += this.GM.scoreList.tspin;
+                        break;
+                    case 1:
+                        score += this.GM.scoreList.tspinSingle;
+                        attack = 2;
+                        break;
+                    case 2:
+                        score += this.GM.scoreList.tspinDouble;
+                        attack = 4;
+                        break;
+                    case 3:
+                        score += this.GM.scoreList.tspinTriple;
+                        attack = 6;
+                        break;
+                }
+            }
+        } else {
+            switch (clearedLinesCount) {
+                case 1:
+                    score += this.GM.scoreList.single;
+                    break;
+                case 2:
+                    score += this.GM.scoreList.double;
+                    attack = 1;
+                    break;
+                case 3:
+                    score += this.GM.scoreList.triple;
+                    attack = 2;
+                    break;
+                case 4:
+                    score += this.GM.scoreList.tetris;
+                    attack = 4;
+                    break;
+            }
+        }
+        // renの点
+        const renScore = this.GM.ren * this.GM.scoreList.renDefault;
+        if (this.GM.scoreList.renMax < renScore) {
+            score += this.GM.scoreList.renMax;
+        } else {
+            score += renScore;
+        }
+        for (let renCount = 0; renCount < this.GM.ren; renCount++) {
+            if (10 < renCount) {
+                attack += 5;
+            } else if (7 < renCount) {
+                attack += 4;
+            } else if (5 < renCount) {
+                attack += 3;
+            } else if (3 < renCount) {
+                attack += 2;
+            } else if (1 < renCount) {
+                attack += 1;
+            }
+        }
+        // BtBボーナス
+        if (4 <= clearedLinesCount || this.GM.availableMino.tspin) {
+            if (this.GM.backToBack) {
+                score *= 1.5;
+                attack += 1;
+            }
+            this.GM.backToBack = true;
+        } else {
+            this.GM.backToBack = false;
+        }
+        // その他のボーナス点
+        if (!this.GM.board.some(a => a.join('') !== '')) {
+            // パーフェクトクリア
+            switch (clearedLinesCount) {
+                case 1:
+                    score += this.GM.scoreList.perfectClearSingle;
+                    break;
+                case 2:
+                    score += this.GM.scoreList.perfectClearDouble;
+                    break;
+                case 3:
+                    score += this.GM.scoreList.perfectClearTriple;
+                    break;
+                case 4:
+                    score += this.GM.scoreList.perfectClearTetris;
+                    break;
+            }
+            perfectClear = true;
+            attack = 10;
+        }
+        // T-Spin Miniボーナス点
+        if (this.GM.availableMino.tspinMini) {
+            score += 100;
+        }
+
+        // 相殺
+        while (0 < attack && 0 < this.GM.damageAmountArray.length) {
+            this.GM.damageAmountArray[0] -= attack;
+            if (this.GM.damageAmountArray[0] <= 0) {
+                attack = -this.GM.damageAmountArray[0];
+                this.GM.damageAmountArray.shift();
+            } else {
+                attack = 0;
+            }
+        }
+        // せり上がり
+        while (0 < this.GM.damageAmountArray.length) {
+            const damage = this.GM.damageAmountArray.shift();
+            if (typeof damage === 'number') {
+                const holeX = Math.floor(10 * Math.random());
+                for (let i = 0; i < damage; i++) {
+                    const newRow: string[] = [];
+                    for (let columnCount = 0; columnCount < this.GM.width; columnCount++) {
+                        newRow.push('d');
+                    }
+                    newRow[holeX] = '';
+                    this.GM.board.unshift(newRow);
+                    this.GM.board.pop();
+                }
+            }
+        }
+
+        // renの継続
+        if (0 < clearedLinesCount) {
+            this.GM.ren++;
+        } else {
+            this.GM.ren = 0;
+        }
+
+        // 列が消えたときの待機時間
+        switch (clearedLinesCount) {
+            case 1:
+                this.GM.control.waitFrames = 35;
+                break;
+            case 2:
+                this.GM.control.waitFrames = 40;
+                break;
+            case 3:
+                this.GM.control.waitFrames = 40;
+                break;
+            case 4:
+                this.GM.control.waitFrames = 45;
+                break;
+        }
+        if (perfectClear) {
+            this.GM.control.waitFrames = 1;
+        }
+
+        // 次のミノを作成
+        const nextMino = this.GM.createMino(this.shiftNext());
+
+        // ゲームオーバー判定 その2
+        if (this.GM.findOverlapingBlocks(nextMino.myPosition)) {
+            // 2. 次のミノが最初からブロックに埋まっていたらゲームオーバー
+            this.GM.gameover();
+            return false;
+        } else if (this.GM.board[39].join('') !== '') {
+            // 3. 下から40段目にブロックがあったらゲームオーバー
+            this.GM.gameover();
+            return false;
+        }
+
+        // 次のミノを出現させる
+        this.GM.changeAvailableMino(nextMino);
+
+        return true;
+    }
+}
