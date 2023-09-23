@@ -46,7 +46,7 @@ export class Mino {
     };
 
     /**Iミノの回転 */
-    static readonly iMinoShapes = [
+    static readonly iMinoShapes: coordinatesArray[] = [
         [[-1, 0], [0, 0], [1, 0], [2, 0]],
         [[1, 1], [1, 0], [1, -1], [1, -2]],
         [[-1, -1], [0, -1], [1, -1], [2, -1]],
@@ -60,7 +60,7 @@ export class Mino {
 
     /**Iミノの回転をコピーして取得する関数 */
     static getIMinoShapes(direction: zeroToThree): coordinatesArray {
-        return JSON.parse(JSON.stringify(this.iMinoShapes[direction]));
+        return this.iMinoShapes[direction].map(a => [...a]);
     }
 
     /**ミノの原点のx座標 */
@@ -149,7 +149,7 @@ export class Mino {
     /**SRSを適用する */
     useSRS(blocksCoordinates: coordinatesArray, minoType: iotszlj, currentMinoDirection: zeroToThree, rotateDirection: 'clockwise' | 'counterclockwise', SRSCount: number) {
         // ブロックの座標の配列をコピー
-        const newBlocksCoordinates = JSON.parse(JSON.stringify(blocksCoordinates));
+        const newBlocksCoordinates: coordinatesArray = blocksCoordinates.map(a => [...a]);
         // コピーした配列にSRSを適用
         if (minoType === 'i') {
             for (let i = 0; i < newBlocksCoordinates.length; i++) {

@@ -11,7 +11,7 @@ export class Bag {
     }
 
     generateNextMinos() {
-        const minoTypesCOPY = JSON.parse(JSON.stringify(Bag.minoTypes));
+        const minoTypesCOPY = [...Bag.minoTypes];
         const generatedMinos: iotszlj[] = [];
         while (minoTypesCOPY.length !== 0) {
             generatedMinos.push(minoTypesCOPY.splice(Math.floor(Math.random() * minoTypesCOPY.length), 1)[0]);

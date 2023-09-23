@@ -59,7 +59,7 @@ export class Gamemaster extends Board {
     damageAmountArray: number[] = [];
 
     /**操作制御 */
-    control = new Control(2, 9, 7, 20, this);
+    control = new Control(2, 9, 2, 20, this);
 
     /**ターン管理 */
     turn = new Turn(this);

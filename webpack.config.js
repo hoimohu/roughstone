@@ -14,7 +14,7 @@ module.exports = {
 
     // アウトプットディレクトリの指定
     output: {
-        path: path.join(__dirname, 'public/dist'),
+        path: path.join(__dirname, 'dist'),
     },
 
     // モジュール解決方法の設定
@@ -39,7 +39,7 @@ module.exports = {
     devServer: {
         static: {
             // 公開ディレクトリの指定
-            directory: path.join(__dirname, 'public/dist'),
+            directory: path.join(__dirname, 'dist'),
         },
         // ポート番号の指定
         port: 9000,

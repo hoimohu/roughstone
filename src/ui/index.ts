@@ -61,7 +61,7 @@ let FPS = 0;
 
     const previousBoard = JSON.parse(JSON.stringify(game.board));
     game.fill(game.currentMino.getAbsoluteCoordinates(game.currentMino.x, game.currentMino.y), game.currentMino.minoType);
-    const currentBoardString = JSON.stringify(game.board.reverse());
+    const currentBoardString = JSON.stringify(game.board.slice(0,21).reverse());
     game.board = previousBoard;
 
 
