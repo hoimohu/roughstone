@@ -49,9 +49,13 @@ export class Turn extends Bag {
         let attack: number = 0;
         /**パーフェクトクリアしているか */
         let perfectClear: boolean = false;
+        /**T-Spinかどうか */
+        let tSpin: boolean = this.GM.currentMino.tspin;
+        /**T-Spin Miniかどうか */
+        let tSpinMini: boolean = this.GM.currentMino.tspinMini;
         // 基礎点
-        if (this.GM.currentMino.tspin) {
-            if (!this.GM.currentMino.tspinMini) {
+        if (tSpin) {
+            if (!tSpinMini) {
                 switch (clearedLinesCount) {
                     case 0:
                         score += this.GM.scoreList.tspin;
@@ -89,8 +93,10 @@ export class Turn extends Bag {
                     break;
             }
         }
+        // ren数
+        const ren = this.GM.ren;
         // renの点
-        const renScore = this.GM.ren * this.GM.scoreList.renDefault;
+        const renScore = ren * this.GM.scoreList.renDefault;
         if (this.GM.scoreList.renMax < renScore) {
             score += this.GM.scoreList.renMax;
         } else {
@@ -119,6 +125,8 @@ export class Turn extends Bag {
         } else {
             this.GM.backToBack = false;
         }
+        /**Back To Backかどうか */
+        const backToBack = this.GM.backToBack;
         // その他のボーナス点
         if (!this.GM.board.some(a => a.join('') !== '')) {
             // パーフェクトクリア
@@ -155,6 +163,8 @@ export class Turn extends Bag {
             }
         }
         // せり上がり
+        /**せりあがったブロック数 */
+        let pushedBlockCount: number = 0;
         while (0 < this.GM.damageAmountArray.length) {
             const damage = this.GM.damageAmountArray.shift();
             if (typeof damage === 'number') {
@@ -167,6 +177,8 @@ export class Turn extends Bag {
                     newRow[holeX] = '';
                     this.GM.board.unshift(newRow);
                     this.GM.board.pop();
+
+                    pushedBlockCount++;
                 }
             }
         }
@@ -192,6 +204,9 @@ export class Turn extends Bag {
             case 4:
                 this.GM.control.waitFrames = 45;
                 break;
+            default:
+                this.GM.control.waitFrames = 1;
+                break;
         }
         if (perfectClear) {
             this.GM.control.waitFrames = 1;
@@ -213,6 +228,18 @@ export class Turn extends Bag {
 
         // 次のミノを出現させる
         this.GM.changeCurrentMino(nextMino);
+
+        this.GM.event({
+            type: 'nextTurn',
+            clearedLinesCount,
+            attack,
+            perfectClear,
+            tSpin,
+            tSpinMini,
+            ren,
+            backToBack,
+            pushedBlockCount
+        });
 
         return true;
     }

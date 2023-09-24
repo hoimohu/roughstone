@@ -83,7 +83,9 @@ export class Control {
             if (this.GM.gameRunning) {
                 if (0 < this.waitFrames) {
                     this.waitFrames--;
+                    this.remainingDAS--;
                 } else {
+                    this.GM.currentMino.visible = true;
                     if (this.pressingRight || this.pressingLeft) {
                         // 動かす向きの判定
                         if (this.pressingRight && !this.pressingLeft && this.moveDirection !== 'right') {
@@ -147,6 +149,10 @@ export class Control {
                                 this.currentLowestHeight = this.GM.currentMino.y;
                                 this.remaininglockDownCount = this.lockDownCount;
                             }
+
+                            this.GM.event({
+                                type: 'softdrop'
+                            });
                         } else {
                             // ソフトドロップ失敗なら設置
                             this.lockAndNextTurn();
@@ -175,7 +181,7 @@ export class Control {
 
     /**ミノを moveDirection の方向に動かす */
     moveMinoHorizontally() {
-        if (this.GM.gameRunning) {
+        if (this.GM.gameRunning && this.waitFrames <= 0) {
             if (this.moveDirection !== 'idle') {
                 const condition = this.GM.currentMino.moveHorizontally(this.moveDirection);
                 if (condition) {
@@ -189,6 +195,10 @@ export class Control {
                     } else {
                         this.waitinglockDown = false;
                     }
+
+                    this.GM.event({
+                        type: 'move' + this.moveDirection
+                    });
                 }
             }
         }
@@ -196,7 +206,7 @@ export class Control {
 
     /**右回転 */
     rotateClockwise() {
-        if (this.GM.gameRunning) {
+        if (this.GM.gameRunning && this.waitFrames <= 0) {
             const condition = this.GM.currentMino.rotate('clockwise');
             if (condition) {
                 // 回転成功
@@ -209,12 +219,16 @@ export class Control {
                 } else {
                     this.waitinglockDown = false;
                 }
+
+                this.GM.event({
+                    type: 'rotateClockwise'
+                });
             }
         }
     }
     /**左回転 */
     rotateCounterclockwise() {
-        if (this.GM.gameRunning) {
+        if (this.GM.gameRunning && this.waitFrames <= 0) {
             const condition = this.GM.currentMino.rotate('counterclockwise');
             if (condition) {
                 // 回転成功
@@ -227,22 +241,36 @@ export class Control {
                 } else {
                     this.waitinglockDown = false;
                 }
+
+                this.GM.event({
+                    type: 'rotateCounterclockwise'
+                });
             }
         }
     }
 
     /**ホールドを使う */
     holdKey() {
-        if (this.GM.gameRunning) {
-            this.GM.useHold();
+        if (this.GM.gameRunning && this.waitFrames <= 0) {
+            const condition = this.GM.useHold();
+            if (condition) {
+                this.GM.event({
+                    type: 'hold'
+                });
+            }
         }
     }
 
     /**ハードドロップの処理 */
     harddropKey() {
-        if (this.GM.gameRunning) {
+        if (this.GM.gameRunning && this.waitFrames <= 0) {
             this.remainingDCD = this.DCD;
             this.GM.currentMino.harddrop();
+
+            this.GM.event({
+                type: 'harddrop'
+            });
+
             this.lockAndNextTurn();
         }
     }
@@ -251,11 +279,13 @@ export class Control {
     rightKeyDown() {
         if (this.GM.gameRunning) {
             this.pressingRight = true;
-            if (this.moveDirection === 'idle') {
-                this.moveDirection = 'right';
+            const movingDirection = this.moveDirection;
+            this.moveDirection = 'right';
+            if (movingDirection === 'idle' || movingDirection === 'left') {
                 this.moveMinoHorizontally();
-            } else {
-                this.moveDirection = 'right';
+            }
+            if (movingDirection !== 'idle') {
+                this.remainingDAS = this.DAS;
             }
         }
     }
@@ -267,11 +297,13 @@ export class Control {
     leftKeyDown() {
         if (this.GM.gameRunning) {
             this.pressingLeft = true;
-            if (this.moveDirection === 'idle') {
-                this.moveDirection = 'left';
+            const movingDirection = this.moveDirection;
+            this.moveDirection = 'left';
+            if (movingDirection === 'idle' || movingDirection === 'right') {
                 this.moveMinoHorizontally();
-            } else {
-                this.moveDirection = 'left';
+            }
+            if (movingDirection !== 'idle') {
+                this.remainingDAS = this.DAS;
             }
         }
     }

@@ -59,16 +59,21 @@ export class Gamemaster extends Board {
     damageAmountArray: number[] = [];
 
     /**操作制御 */
-    control = new Control(2, 9, 2, 20, this);
+    control = new Control(1, 7, 1, 30, this);
 
     /**ターン管理 */
     turn = new Turn(this);
 
-    constructor() {
+    constructor(controlLoop: boolean = true) {
         super();
 
         // 一応、最初のミノをセット
         this.currentMino = this.createMino(this.turn.nextMinos[0]);
+
+        if (controlLoop) {
+            // ループ開始
+            this.control.controlLoop();
+        }
     }
 
     /**引数のタイプのMinoインスタンスを作成 */
@@ -114,9 +119,6 @@ export class Gamemaster extends Board {
             this.changeCurrentMino(this.createMino(this.turn.shiftNext()));
 
             this.gameRunning = true;
-
-            // ループ開始
-            this.control.controlLoop();
         }
     }
 

@@ -1,6 +1,6 @@
 {
   "name": "roughstone",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "TypeScriptで書いたTetris",
   "main": "index.js",
   "scripts": {
@@ -23,5 +23,8 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
+  },
+  "dependencies": {
+    "pixi.js": "^7.3.1"
   }
 }

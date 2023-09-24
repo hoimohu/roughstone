@@ -1,32 +1,32 @@
+import * as PIXI from 'pixi.js';
 import { Gamemaster } from "../tetris/gamemaster";
+import { PixiApp } from "./pixiApp";
+import { PlayerContainer } from "./playerContainer";
 
-const game = new Gamemaster();
-game.start();
-const gameElement = document.getElementById('game') ?? document.body;
 
 document.addEventListener('keydown', e => {
     if (!e.repeat) {
         switch (e.key) {
             case 'ArrowUp':
-                game.control.rotateClockwise();
+                gm.control.rotateClockwise();
                 break;
             case 'ArrowRight':
-                game.control.rightKeyDown();
+                gm.control.rightKeyDown();
                 break;
             case 'ArrowDown':
-                game.control.downKeyDown();
+                gm.control.downKeyDown();
                 break;
             case 'ArrowLeft':
-                game.control.leftKeyDown();
+                gm.control.leftKeyDown();
                 break;
             case 'c':
-                game.control.holdKey();
+                gm.control.holdKey();
                 break;
             case 'z':
-                game.control.rotateCounterclockwise();
+                gm.control.rotateCounterclockwise();
                 break;
             case ' ':
-                game.control.harddropKey();
+                gm.control.harddropKey();
                 break;
         }
     }
@@ -35,17 +35,30 @@ document.addEventListener('keyup', e => {
     if (!e.repeat) {
         switch (e.key) {
             case 'ArrowRight':
-                game.control.rightKeyUp();
+                gm.control.rightKeyUp();
                 break;
             case 'ArrowDown':
-                game.control.downKeyUp();
+                gm.control.downKeyUp();
                 break;
             case 'ArrowLeft':
-                game.control.leftKeyUp();
+                gm.control.leftKeyUp();
                 break;
         }
     }
 });
+
+// PixiJS
+const app = new PixiApp();
+document.body.appendChild(app.view);
+
+const gm = new Gamemaster();
+gm.start();
+
+const player = new PlayerContainer(window, gm, innerWidth / 2, innerHeight / 2);
+app.app.stage.addChild(player.container);
+
+const fpsText = new PIXI.Text('0fps', { fontFamily: 'Arial', fontSize: 24, fill: 0x000000, align: 'center' });
+app.app.stage.addChild(fpsText);
 
 let fpsTimer = 0;
 let FPS = 0;
@@ -55,21 +68,12 @@ let FPS = 0;
         setTimeout(() => {
             FPS = fpsTimer;
             fpsTimer = 0;
+
+            fpsText.text = FPS + 'fps';
         }, 1000);
     }
     fpsTimer++;
 
-    const previousBoard = JSON.parse(JSON.stringify(game.board));
-    game.fill(game.currentMino.getAbsoluteCoordinates(game.currentMino.x, game.currentMino.y), game.currentMino.minoType);
-    const currentBoardString = JSON.stringify(game.board.slice(0,21).reverse());
-    game.board = previousBoard;
-
-
-    gameElement.innerText = `FPS: ${FPS}
-board:
-${currentBoardString.replace(/],/g, ']\n').replace(/""/g, '" "').replace(/("|,|((?<=\[)\[)|(](?=])))/g, '')}
-next: ${game.turn.nextMinos}
-hold: ${game.holdMino}
-score: ${game.score}`;
+    player.render();
     requestAnimationFrame(loop);
 })();

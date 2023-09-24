@@ -63,6 +63,8 @@ export class Mino {
         return this.iMinoShapes[direction].map(a => [...a]);
     }
 
+    /**ミノが見えているかどうか */
+    visible: boolean = false;
     /**ミノの原点のx座標 */
     x: number = 0;
     /**ミノの原点のy座標 */
@@ -92,12 +94,12 @@ export class Mino {
         switch (minoType) {
             case 'i':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = Mino.getIMinoShapes(this.minoDirection);
                 break;
             case 'o':
                 this.x = 4;
-                this.y = 21;
+                this.y = 20;
                 this.blocksCoordinates = [
                     [0, 0], [1, 0],
                     [0, -1], [1, -1]
@@ -105,7 +107,7 @@ export class Mino {
                 break;
             case 't':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [0, 1],
                     [-1, 0], [0, 0], [1, 0]
@@ -113,7 +115,7 @@ export class Mino {
                 break;
             case 's':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [1, 1], [0, 1],
                     [-1, 0], [0, 0]
@@ -121,7 +123,7 @@ export class Mino {
                 break;
             case 'z':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [-1, 1], [0, 1],
                     [0, 0], [1, 0]
@@ -129,7 +131,7 @@ export class Mino {
                 break;
             case 'l':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [1, 1],
                     [-1, 0], [0, 0], [1, 0]
@@ -137,7 +139,7 @@ export class Mino {
                 break;
             case 'j':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [-1, 1],
                     [-1, 0], [0, 0], [1, 0]
@@ -415,6 +417,7 @@ export class Mino {
         while (this.testMoving(this.x, shadowY)) {
             shadowY--;
         }
+        shadowY++;
 
         return this.getAbsoluteCoordinates(this.x, shadowY);
     }
