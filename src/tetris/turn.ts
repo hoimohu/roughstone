@@ -14,6 +14,7 @@ export class Turn extends Bag {
         // 盤面にミノを設置する
         this.GM.fill(this.GM.currentMino.myPosition, this.GM.currentMino.minoType);
         this.GM.currentMino.locked = true;
+        this.GM.currentMino.visible = false;
 
         // ゲームオーバー判定 その1
         if (!this.GM.currentMino.myPosition.some(a => a[1] < 20)) {
@@ -193,16 +194,10 @@ export class Turn extends Bag {
         // 列が消えたときの待機時間
         switch (clearedLinesCount) {
             case 1:
-                this.GM.control.waitFrames = 35;
-                break;
             case 2:
-                this.GM.control.waitFrames = 40;
-                break;
             case 3:
-                this.GM.control.waitFrames = 40;
-                break;
             case 4:
-                this.GM.control.waitFrames = 45;
+                this.GM.control.waitFrames = 30;
                 break;
             default:
                 this.GM.control.waitFrames = 1;

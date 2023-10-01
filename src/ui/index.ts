@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js';
 import { Gamemaster } from "../tetris/gamemaster";
-import { PixiApp } from "./pixiApp";
 import { PlayerContainer } from "./playerContainer";
 
 
@@ -48,17 +47,21 @@ document.addEventListener('keyup', e => {
 });
 
 // PixiJS
-const app = new PixiApp();
+const app = new PIXI.Application<HTMLCanvasElement>({
+    backgroundColor: 0xEBF8FF,
+    resolution: window.devicePixelRatio || 1,
+    resizeTo: window
+});;
 document.body.appendChild(app.view);
 
 const gm = new Gamemaster();
 gm.start();
 
 const player = new PlayerContainer(window, gm, innerWidth / 2, innerHeight / 2);
-app.app.stage.addChild(player.container);
+app.stage.addChild(player.container);
 
 const fpsText = new PIXI.Text('0fps', { fontFamily: 'Arial', fontSize: 24, fill: 0x000000, align: 'center' });
-app.app.stage.addChild(fpsText);
+app.stage.addChild(fpsText);
 
 let fpsTimer = 0;
 let FPS = 0;

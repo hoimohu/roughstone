@@ -80,7 +80,7 @@ export class Control {
     controlLoop() {
         // 60fpsで実行
         setTimeout(() => {
-            if (this.GM.gameRunning) {
+            if (this.GM.gameRunning && !this.GM.currentMino.locked) {
                 if (0 < this.waitFrames) {
                     this.waitFrames--;
                     this.remainingDAS--;
@@ -168,7 +168,6 @@ export class Control {
     /**次のターンへ */
     lockAndNextTurn() {
         if (this.GM.gameRunning) {
-            this.remainingDAS = this.DAS;
             this.remainingARR = this.ARR;
             this.remainingDCD = this.DCD;
             this.remainingFreeFall = this.freeFall;

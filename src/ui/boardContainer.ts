@@ -28,7 +28,11 @@ export class BoardContainer {
             for (let columnCount = 0; columnCount < this.width; columnCount++) {
                 const newSprite = new PIXI.Sprite(this.PC.blockTexture);
                 newSprite.width = this.PC.blockSize;
-                newSprite.height = this.PC.blockSize;
+                if (rowCount === this.height - 1) {
+                    newSprite.height = this.PC.blockSize / 2;
+                } else {
+                    newSprite.height = this.PC.blockSize;
+                }
                 this.container.addChild(newSprite);
                 newRow.push(newSprite);
             }
@@ -128,9 +132,14 @@ export class BoardContainer {
             for (let collumnIndex = 0; collumnIndex < row.length; collumnIndex++) {
                 const sprite = row[collumnIndex];
                 sprite.x = this.PC.centerX + (collumnIndex - 5) * this.PC.blockSize;
-                sprite.y = this.PC.centerY - (rowIndex - 10) * this.PC.blockSize;
                 sprite.width = this.PC.blockSize;
-                sprite.height = this.PC.blockSize;
+                if (rowIndex === this.height - 1) {
+                    sprite.height = this.PC.blockSize / 2;
+                    sprite.y = this.PC.centerY - (rowIndex - 10) * this.PC.blockSize + this.PC.blockSize / 2;
+                } else {
+                    sprite.height = this.PC.blockSize;
+                    sprite.y = this.PC.centerY - (rowIndex - 10) * this.PC.blockSize;
+                }
             }
         }
         /**ミノの影の座標 */

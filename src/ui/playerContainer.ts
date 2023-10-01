@@ -26,7 +26,7 @@ export class PlayerContainer {
     holdContainer: HoldContainer;
 
     /**スコアのスプライト */
-    scoreSprite = new PIXI.Text(0, { fontFamily: 'Arial', fontSize: 24, fill: 0xffffff, stroke: 0x000000, align: 'right' });
+    scoreSprite = new PIXI.Text('000000000000', { fontFamily: 'Arial', fontSize: 20, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
 
     /**ブロックのサイズ */
     blockSize: number;
@@ -52,21 +52,29 @@ export class PlayerContainer {
         this.nextContainer = new NextContainer(this, visibleNextCount);
         this.holdContainer = new HoldContainer(this);
 
-        this.container.addChild(this.boardContainer.container, this.nextContainer.container, this.holdContainer.container);
+        this.container.addChild(this.boardContainer.container, this.nextContainer.container, this.holdContainer.container, this.scoreSprite);
 
         window.addEventListener('resize', () => this.onResize());
         this.onResize();
     }
 
-    render(){
+    render() {
         this.boardContainer.render();
         this.nextContainer.render();
         this.holdContainer.render();
 
-        this.scoreSprite.text = this.GM.score;
+        if (this.GM.score < 1000000000000) {
+            this.GM.score += this.GM.controlLoopedCount ** 2;
+            this.scoreSprite.text = ('000000000000' + this.GM.score).slice(-12);
+        } else {
+            this.scoreSprite.style.fill = 0xFFA500;
+            this.scoreSprite.text = this.GM.score;
+        }
     }
 
     onResize() {
+        this.centerX = innerWidth / 2;
+        this.centerY = innerHeight / 2;
         this.blockSize = this.window.innerHeight / 25;
         this.boardContainer.updatePosition();
         this.nextContainer.updatePosition();
@@ -74,5 +82,7 @@ export class PlayerContainer {
 
         this.scoreSprite.x = this.centerX + this.blockSize * 5;
         this.scoreSprite.y = this.centerY + this.blockSize * 11;
+        console.log(this.scoreSprite);
+
     }
 }
