@@ -5,6 +5,7 @@ import { Turn } from "./turn";
 
 type iotszlj = 'i' | 'o' | 't' | 's' | 'z' | 'l' | 'j';
 
+/**中央制御 */
 export class Gamemaster extends Board {
     /**スコア一覧 */
     scoreList = {
@@ -32,6 +33,10 @@ export class Gamemaster extends Board {
 
     /**ゲームが動いているかどうか */
     gameRunning: boolean = false;
+    /**スタートした時間 */
+    startTime: number = 0;
+    /** controlLoop が実行された回数 */
+    controlLoopedCount: number = 0;
 
     /**スコア */
     score: number = 0;
@@ -44,7 +49,7 @@ export class Gamemaster extends Board {
     backToBack: boolean = false;
 
     /**現在のミノ*/
-    availableMino: Mino;
+    currentMino: Mino;
     /**ホールドにあるミノ*/
     holdMino: iotszlj | 'none' = 'none';
     /**前回ホールドを使って出したミノ */
@@ -54,13 +59,21 @@ export class Gamemaster extends Board {
     damageAmountArray: number[] = [];
 
     /**操作制御 */
-    control = new Control(2, 9, 7, 20, this);
+    control = new Control(1, 7, 2, 30, this);
 
     /**ターン管理 */
     turn = new Turn(this);
 
-    constructor() {
+    constructor(controlLoop: boolean = true) {
         super();
+
+        // 一応、最初のミノをセット
+        this.currentMino = this.createMino(this.turn.nextMinos[0]);
+
+        if (controlLoop) {
+            // ループ開始
+            this.control.controlLoop();
+        }
     }
 
     /**引数のタイプのMinoインスタンスを作成 */
@@ -68,19 +81,19 @@ export class Gamemaster extends Board {
         return new Mino(type, this);
     }
 
-    /** availableMino を変える */
-    changeAvailableMino(newMino: Mino) {
-        this.availableMino = newMino;
+    /** currentMino を変える */
+    changeCurrentMino(newMino: Mino) {
+        this.currentMino = newMino;
         this.control.currentLowestHeight = newMino.y;
     }
 
 
     /**ホールド動作を行う */
     useHold() {
-        if (this.previousMinoByHold === this.availableMino && this.gameRunning) {
+        if (this.previousMinoByHold !== this.currentMino && this.gameRunning) {
             // ホールドを使用
             const previousHoldMino = this.holdMino;
-            this.holdMino = this.availableMino.minoType;
+            this.holdMino = this.currentMino.minoType;
             let createdMino: Mino;
 
             if (previousHoldMino === 'none') {
@@ -88,7 +101,7 @@ export class Gamemaster extends Board {
             } else {
                 createdMino = this.createMino(previousHoldMino);
             }
-            this.changeAvailableMino(createdMino);
+            this.changeCurrentMino(createdMino);
             this.previousMinoByHold = createdMino;
 
             // 成功
@@ -101,9 +114,12 @@ export class Gamemaster extends Board {
 
     /**ゲームを開始 */
     start() {
-        this.gameRunning = true;
+        if (this.startTime === 0) {
+            this.startTime = Date.now();
+            this.changeCurrentMino(this.createMino(this.turn.shiftNext()));
 
-        this.changeAvailableMino(this.createMino(this.turn.shiftNext()));
+            this.gameRunning = true;
+        }
     }
 
     /**一時停止 */

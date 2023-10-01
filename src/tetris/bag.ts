@@ -4,23 +4,24 @@ export class Bag {
 
     static readonly minoTypes: iotszlj[] = ['i', 'o', 't', 's', 'z', 'l', 'j'];
 
-    nextMinos: iotszlj[];
+    nextMinos: iotszlj[] = [];
 
     constructor() {
-        this.generateNextMinos();
-        this.generateNextMinos();
+        this.nextMinos.push(...this.generateNextMinos(), ...this.generateNextMinos());
     }
 
     generateNextMinos() {
-        const minoTypesCOPY = JSON.parse(JSON.stringify(Bag.minoTypes));
+        const minoTypesCOPY = [...Bag.minoTypes];
+        const generatedMinos: iotszlj[] = [];
         while (minoTypesCOPY.length !== 0) {
-            this.nextMinos.push(minoTypesCOPY.splice(Math.floor(Math.random() * minoTypesCOPY.length), 1)[0]);
+            generatedMinos.push(minoTypesCOPY.splice(Math.floor(Math.random() * minoTypesCOPY.length), 1)[0]);
         }
+        return generatedMinos;
     }
 
     shiftNext() {
         if (this.nextMinos.length < 8) {
-            this.generateNextMinos();
+            this.nextMinos.push(...this.generateNextMinos());
         }
         const nextMino = this.nextMinos[0];
         this.nextMinos.shift();

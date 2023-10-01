@@ -46,7 +46,7 @@ export class Mino {
     };
 
     /**Iミノの回転 */
-    static readonly iMinoShapes = [
+    static readonly iMinoShapes: coordinatesArray[] = [
         [[-1, 0], [0, 0], [1, 0], [2, 0]],
         [[1, 1], [1, 0], [1, -1], [1, -2]],
         [[-1, -1], [0, -1], [1, -1], [2, -1]],
@@ -60,9 +60,11 @@ export class Mino {
 
     /**Iミノの回転をコピーして取得する関数 */
     static getIMinoShapes(direction: zeroToThree): coordinatesArray {
-        return JSON.parse(JSON.stringify(this.iMinoShapes[direction]));
+        return this.iMinoShapes[direction].map(a => [...a]);
     }
 
+    /**ミノが見えているかどうか */
+    visible: boolean = false;
     /**ミノの原点のx座標 */
     x: number = 0;
     /**ミノの原点のy座標 */
@@ -92,12 +94,12 @@ export class Mino {
         switch (minoType) {
             case 'i':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = Mino.getIMinoShapes(this.minoDirection);
                 break;
             case 'o':
                 this.x = 4;
-                this.y = 21;
+                this.y = 20;
                 this.blocksCoordinates = [
                     [0, 0], [1, 0],
                     [0, -1], [1, -1]
@@ -105,7 +107,7 @@ export class Mino {
                 break;
             case 't':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [0, 1],
                     [-1, 0], [0, 0], [1, 0]
@@ -113,7 +115,7 @@ export class Mino {
                 break;
             case 's':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [1, 1], [0, 1],
                     [-1, 0], [0, 0]
@@ -121,7 +123,7 @@ export class Mino {
                 break;
             case 'z':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [-1, 1], [0, 1],
                     [0, 0], [1, 0]
@@ -129,7 +131,7 @@ export class Mino {
                 break;
             case 'l':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [1, 1],
                     [-1, 0], [0, 0], [1, 0]
@@ -137,7 +139,7 @@ export class Mino {
                 break;
             case 'j':
                 this.x = 4;
-                this.y = 20;
+                this.y = 19;
                 this.blocksCoordinates = [
                     [-1, 1],
                     [-1, 0], [0, 0], [1, 0]
@@ -149,7 +151,7 @@ export class Mino {
     /**SRSを適用する */
     useSRS(blocksCoordinates: coordinatesArray, minoType: iotszlj, currentMinoDirection: zeroToThree, rotateDirection: 'clockwise' | 'counterclockwise', SRSCount: number) {
         // ブロックの座標の配列をコピー
-        const newBlocksCoordinates = JSON.parse(JSON.stringify(blocksCoordinates));
+        const newBlocksCoordinates: coordinatesArray = blocksCoordinates.map(a => [...a]);
         // コピーした配列にSRSを適用
         if (minoType === 'i') {
             for (let i = 0; i < newBlocksCoordinates.length; i++) {
@@ -189,28 +191,36 @@ export class Mino {
             newDirection = 0;
         }
 
+        // 新しいミノのブロックの相対座標
+        let newBlocksCoordinates: coordinatesArray = [[0, 0], [0, 0], [0, 0], [0, 0]];
         // 新しいミノのブロックの絶対座標の決定
         let newAbsoluteCoordinates: coordinatesArray = [[0, 0], [0, 0], [0, 0], [0, 0]];
 
         switch (this.minoType) {
             case 'i':
-                newAbsoluteCoordinates = Mino.getIMinoShapes(newDirection).map((a): [number, number] => [this.x + a[0], this.y + a[1]]);
+                newBlocksCoordinates = Mino.getIMinoShapes(newDirection);
+                newAbsoluteCoordinates = newBlocksCoordinates.map((a): [number, number] => [this.x + a[0], this.y + a[1]]);
                 break;
             case 'o':
-                newAbsoluteCoordinates = this.blocksCoordinates.map((a): [number, number] => [this.x + a[0], this.y + a[1]]);
+                newBlocksCoordinates = this.blocksCoordinates;
+                newAbsoluteCoordinates = newBlocksCoordinates.map((a): [number, number] => [this.x + a[0], this.y + a[1]]);
                 break;
             default:
                 if (rotateDirection === 'clockwise') {
                     for (let i = 0; i < this.blocksCoordinates.length; i++) {
                         const e = this.blocksCoordinates[i];
-                        newAbsoluteCoordinates[i][0] = e[1] + this.x;
-                        newAbsoluteCoordinates[i][1] = -e[0] + this.y;
+                        newBlocksCoordinates[i][0] = e[1];
+                        newBlocksCoordinates[i][1] = -e[0];
+                        newAbsoluteCoordinates[i][0] = newBlocksCoordinates[i][0] + this.x;
+                        newAbsoluteCoordinates[i][1] = newBlocksCoordinates[i][1] + this.y;
                     }
                 } else {
                     for (let i = 0; i < this.blocksCoordinates.length; i++) {
                         const e = this.blocksCoordinates[i];
-                        newAbsoluteCoordinates[i][0] = -e[1] + this.x;
-                        newAbsoluteCoordinates[i][1] = e[0] + this.y;
+                        newBlocksCoordinates[i][0] = -e[1];
+                        newBlocksCoordinates[i][1] = e[0];
+                        newAbsoluteCoordinates[i][0] = newBlocksCoordinates[i][0] + this.x;
+                        newAbsoluteCoordinates[i][1] = newBlocksCoordinates[i][1] + this.y;
                     }
                 }
                 break;
@@ -229,8 +239,9 @@ export class Mino {
         if (!this.GM.findOverlapingBlocks(SRSAbsoluteCoordinates)) {
             // 回転成功
             this.minoDirection = newDirection;
-            this.x = this.x + SRSAbsoluteCoordinates[0][0] - newAbsoluteCoordinates[0][0];
-            this.y = this.y + SRSAbsoluteCoordinates[0][1] - newAbsoluteCoordinates[0][1];
+            this.x = this.x + (SRSAbsoluteCoordinates[0][0] - newAbsoluteCoordinates[0][0]);
+            this.y = this.y + (SRSAbsoluteCoordinates[0][1] - newAbsoluteCoordinates[0][1]);
+            this.blocksCoordinates = newBlocksCoordinates;
 
             // T-Spinのリセット
             this.tspin = false;
@@ -317,9 +328,9 @@ export class Mino {
     }
 
     /**左右移動 */
-    moveHorizontally(moveDirection: 'counterclockwise' | 'clockwise') {
+    moveHorizontally(moveDirection: 'left' | 'right') {
         // 右はx座標を+1、左はx座標を-1する
-        const newX = this.x + (moveDirection === 'counterclockwise' ? -1 : 1);
+        const newX = this.x + (moveDirection === 'left' ? -1 : 1);
 
         // もともとあったブロックとかぶっていないかチェック
         if (this.testMoving(newX, this.y)) {
@@ -338,7 +349,7 @@ export class Mino {
     }
 
     /**ソフトドロップ */
-    softdrop() {
+    softdrop(freeFall: boolean = true) {
         // もともとあったブロックとかぶっていないかチェック
         if (this.softDroppable) {
             // 移動成功
@@ -348,8 +359,10 @@ export class Mino {
             this.tspin = false;
             this.tspinMini = false;
 
-            // スコアを加算
-            this.GM.increaseScore(this.GM.scoreList.softdrop);
+            if (freeFall) {
+                // 自由落下でなければスコアを加算
+                this.GM.increaseScore(this.GM.scoreList.softdrop);
+            }
 
             return true;
         } else {
@@ -404,6 +417,7 @@ export class Mino {
         while (this.testMoving(this.x, shadowY)) {
             shadowY--;
         }
+        shadowY++;
 
         return this.getAbsoluteCoordinates(this.x, shadowY);
     }
