@@ -59,13 +59,16 @@ export class Gamemaster extends Board {
     damageAmountArray: number[] = [];
 
     /**操作制御 */
-    control = new Control(1, 7, 2, 30, this);
+    control: Control;
 
     /**ターン管理 */
     turn = new Turn(this);
 
-    constructor(controlLoop: boolean = true) {
+    constructor(controlLoop: boolean = true, ARR: number = 2, DAS: number = 7, DCD: number = 2, SDF: number = 30) {
         super();
+
+        // 操作クラスのインスタンスを作成
+        this.control = new Control(ARR, DAS, DCD, SDF, this);
 
         // 一応、最初のミノをセット
         this.currentMino = this.createMino(this.turn.nextMinos[0]);
