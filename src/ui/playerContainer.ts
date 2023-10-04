@@ -64,7 +64,6 @@ export class PlayerContainer {
         this.holdContainer.render();
 
         if (this.GM.score < 1000000000000) {
-            this.GM.score += this.GM.controlLoopedCount ** 2;
             this.scoreSprite.text = ('000000000000' + this.GM.score).slice(-12);
         } else {
             this.scoreSprite.style.fill = 0xFFA500;
