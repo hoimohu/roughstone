@@ -15,6 +15,10 @@ export class PlayerContainer {
     centerX: number;
     /**描画上の盤面の中心のy */
     centerY: number;
+    /**描画上の盤面の中心のxを幅の割合で指定 */
+    centerXRate: number;
+    /**描画上の盤面の中心のyを幅の割合で指定 */
+    centerYRate: number;
 
     /**コンテナ */
     container = new PIXI.Container();
@@ -29,6 +33,7 @@ export class PlayerContainer {
     scoreSprite = new PIXI.Text('000000000000', { fontFamily: 'Arial', fontSize: 20, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
 
     /**ブロックのサイズ */
+    blockSizeRate: number = 1 / 26;
     blockSize: number;
 
     /**ブロックのテクスチャー */
@@ -36,15 +41,18 @@ export class PlayerContainer {
     /**ミノの影のテクスチャー */
     shadowTexture: PIXI.Texture;
 
-    constructor(window: Window, gamemaster: Gamemaster, centerX: number, centerY: number, visibleNextCount: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 = 5, blockTexture: PIXI.Texture = Data.blockTextures.hydrop, shadowTexture: PIXI.Texture = Data.shadowTextures.roughstone) {
+    constructor(window: Window, gamemaster: Gamemaster, centerXRate: number, centerYRate: number, visibleNextCount: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 = 5, blockTexture: PIXI.Texture = Data.blockTextures.star, shadowTexture: PIXI.Texture = Data.shadowTextures.roughstone) {
         this.window = window;
         this.GM = gamemaster;
-        this.centerX = centerX;
-        this.centerY = centerY;
+        this.centerXRate = centerXRate;
+        this.centerYRate = centerYRate;
+        this.centerX = this.window.innerWidth * this.centerXRate;
+        this.centerY = this.window.innerHeight * this.centerYRate;
         this.blockTexture = blockTexture;
         this.shadowTexture = shadowTexture;
 
-        this.blockSize = this.window.innerHeight / 25;
+        this.blockSize = this.window.innerHeight * this.blockSizeRate;
+
         this.scoreSprite.style.fontSize = this.blockSize;
         this.scoreSprite.anchor.set(1, 0);
 
@@ -72,16 +80,15 @@ export class PlayerContainer {
     }
 
     onResize() {
-        this.centerX = innerWidth / 2;
-        this.centerY = innerHeight / 2;
-        this.blockSize = this.window.innerHeight / 25;
+        this.centerX = this.window.innerWidth * this.centerXRate;
+        this.centerY = this.window.innerHeight * this.centerYRate;
+        this.blockSize = this.window.innerHeight * this.blockSizeRate;
         this.boardContainer.updatePosition();
         this.nextContainer.updatePosition();
         this.holdContainer.updatePosition();
 
         this.scoreSprite.x = this.centerX + this.blockSize * 5;
         this.scoreSprite.y = this.centerY + this.blockSize * 11;
-        console.log(this.scoreSprite);
 
     }
 }

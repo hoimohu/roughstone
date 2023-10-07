@@ -64,7 +64,7 @@ export class Gamemaster extends Board {
     /**ターン管理 */
     turn = new Turn(this);
 
-    constructor(controlLoop: boolean = true, ARR: number = 2, DAS: number = 7, DCD: number = 2, SDF: number = 30) {
+    constructor(controlLoop: boolean = true, ARR: number = 1, DAS: number = 8, DCD: number = 2, SDF: number = 30) {
         super();
 
         // 操作クラスのインスタンスを作成

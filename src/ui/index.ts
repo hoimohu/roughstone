@@ -57,7 +57,7 @@ document.body.appendChild(app.view);
 const gm = new Gamemaster();
 gm.start();
 
-const player = new PlayerContainer(window, gm, innerWidth / 2, innerHeight / 2);
+const player = new PlayerContainer(window, gm, 1 / 2, 1 / 20 * 9);
 app.stage.addChild(player.container);
 
 const fpsText = new PIXI.Text('0fps', { fontFamily: 'Arial', fontSize: 24, fill: 0x000000, align: 'center' });
