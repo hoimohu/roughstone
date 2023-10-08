@@ -32,16 +32,19 @@ export class PlayerContainer {
     /**スコアのスプライト */
     scoreSprite = new PIXI.Text('000000000000', { fontFamily: 'Arial', fontSize: 20, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
 
+    /**ブロックのサイズの画面の縦幅に対する割合 */
+    blockSizeRate: number = 1 / 32;
     /**ブロックのサイズ */
-    blockSizeRate: number = 1 / 26;
     blockSize: number;
+    /**ネクスト・ホールドのブロックのサイズのblockSizeに対する割合 */
+    nextAndHoldSizeRate: number = 1 / 4 * 3;
 
     /**ブロックのテクスチャー */
     blockTexture: PIXI.Texture;
     /**ミノの影のテクスチャー */
     shadowTexture: PIXI.Texture;
 
-    constructor(window: Window, gamemaster: Gamemaster, centerXRate: number, centerYRate: number, visibleNextCount: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 = 5, blockTexture: PIXI.Texture = Data.blockTextures.star, shadowTexture: PIXI.Texture = Data.shadowTextures.roughstone) {
+    constructor(window: Window, gamemaster: Gamemaster, centerXRate: number, centerYRate: number, visibleNextCount: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 = 5, blockTexture: PIXI.Texture = Data.blockTextures.bright, shadowTexture: PIXI.Texture = Data.shadowTextures.roughstone) {
         this.window = window;
         this.GM = gamemaster;
         this.centerXRate = centerXRate;

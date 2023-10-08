@@ -107,6 +107,18 @@ export class Gamemaster extends Board {
             this.changeCurrentMino(createdMino);
             this.previousMinoByHold = createdMino;
 
+            // ゲームオーバー判定
+            if (this.findOverlapingBlocks(createdMino.myPosition)) {
+                // 次のミノが最初からブロックに埋まっていて、なおかつy+1しても埋まっていたらゲームオーバー
+                createdMino.y++;
+                if (this.findOverlapingBlocks(createdMino.myPosition)) {
+                    this.gameover();
+
+                    // 失敗
+                    return false;
+                }
+            }
+
             // 成功
             return true;
         } else {

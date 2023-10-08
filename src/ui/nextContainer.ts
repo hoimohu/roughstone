@@ -74,10 +74,10 @@ export class NextContainer {
                 const row = next[rowIndex];
                 for (let collumnIndex = 0; collumnIndex < row.length; collumnIndex++) {
                     const sprite = row[collumnIndex];
-                    sprite.x = this.PC.centerX + this.PC.blockSize * 6 + collumnIndex * this.PC.blockSize;
-                    sprite.y = this.PC.centerY - 10 * this.PC.blockSize + this.PC.blockSize * nextIndex * 4 - rowIndex * this.PC.blockSize + this.PC.blockSize;
-                    sprite.width = this.PC.blockSize;
-                    sprite.height = this.PC.blockSize;
+                    sprite.x = this.PC.centerX + this.PC.blockSize * 5.5 + collumnIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                    sprite.y = this.PC.centerY - 10 * this.PC.blockSize + this.PC.blockSize * this.PC.nextAndHoldSizeRate * nextIndex * 4 - rowIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate + this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                    sprite.width = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                    sprite.height = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
                 }
             }
         }

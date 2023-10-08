@@ -55,6 +55,8 @@ export class HoldContainer {
             }
         }
 
+        // 場所の更新
+        this.updatePosition();
     }
 
     updatePosition() {
@@ -62,10 +64,13 @@ export class HoldContainer {
             const row = this.holdSprites[rowIndex];
             for (let collumnIndex = 0; collumnIndex < row.length; collumnIndex++) {
                 const sprite = row[collumnIndex];
-                sprite.x = this.PC.centerX - this.PC.blockSize * 10 + collumnIndex * this.PC.blockSize;
-                sprite.y = this.PC.centerY - 10 * this.PC.blockSize - rowIndex * this.PC.blockSize + this.PC.blockSize;
-                sprite.width = this.PC.blockSize;
-                sprite.height = this.PC.blockSize;
+                sprite.x = this.PC.centerX - (this.PC.blockSize * 5 + this.PC.blockSize * this.PC.nextAndHoldSizeRate * 4.5) + collumnIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                if (this.PC.GM.holdMino !== 'i') {
+                    sprite.x += this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                }
+                sprite.y = this.PC.centerY - 10 * this.PC.blockSize - rowIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate + this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                sprite.width = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                sprite.height = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
             }
         }
     }
