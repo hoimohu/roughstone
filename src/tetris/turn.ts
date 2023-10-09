@@ -153,6 +153,8 @@ export class Turn extends Bag {
             score += 100;
         }
 
+        this.GM.score += score;
+
         // 相殺
         while (0 < attack && 0 < this.GM.damageAmountArray.length) {
             this.GM.damageAmountArray[0] -= attack;
