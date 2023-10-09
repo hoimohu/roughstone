@@ -64,6 +64,9 @@ export class Gamemaster extends Board {
     /**ターン管理 */
     turn = new Turn(this);
 
+    /**event関数に来たobject */
+    eventMessage: object = {};
+
     constructor(controlLoop: boolean = true, ARR: number = 1, DAS: number = 8, DCD: number = 2, SDF: number = 30) {
         super();
 
@@ -162,6 +165,8 @@ export class Gamemaster extends Board {
     }
 
 
-    /**ゲームの装飾用関数 */
-    event(event: object) { }
+    /**何か起こったときの関数 */
+    event(event: object) {
+        this.eventMessage = event;
+    }
 }

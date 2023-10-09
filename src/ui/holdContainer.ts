@@ -16,6 +16,8 @@ export class HoldContainer {
 
     /**ホールドのブロックのスプライト */
     holdSprites: PIXI.Sprite[][];
+    /**HOLDの文字のスプライト */
+    holdTextSprite = new PIXI.Text('HOLD', { fontFamily: "sans-serif", fontSize: 26, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
 
     constructor(playerContainer: PlayerContainer) {
         this.PC = playerContainer;
@@ -31,6 +33,8 @@ export class HoldContainer {
             newHoldSprites.push(newRow);
         }
         this.holdSprites = newHoldSprites;
+
+        this.container.addChild(this.holdTextSprite);
 
         this.updatePosition();
     }
@@ -68,11 +72,13 @@ export class HoldContainer {
                 if (this.PC.GM.holdMino !== 'i') {
                     sprite.x += this.PC.blockSize * this.PC.nextAndHoldSizeRate;
                 }
-                sprite.y = this.PC.centerY - 10 * this.PC.blockSize - rowIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate + this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                sprite.y = this.PC.centerY - 10 * this.PC.blockSize - rowIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate + this.PC.blockSize * this.PC.nextAndHoldSizeRate * 4;
                 sprite.width = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
                 sprite.height = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
             }
         }
+        this.holdTextSprite.x = this.PC.centerX - (this.PC.blockSize * 5 + this.PC.blockSize * this.PC.nextAndHoldSizeRate * 4.5) + this.PC.blockSize * this.PC.nextAndHoldSizeRate / 2;
+        this.holdTextSprite.y = this.PC.centerY - 10 * this.PC.blockSize;
     }
 
     /**ブロックのテクスチャーを更新する */

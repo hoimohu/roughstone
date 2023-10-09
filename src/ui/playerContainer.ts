@@ -5,6 +5,14 @@ import { BoardContainer } from './boardContainer';
 import { NextContainer } from './nextContainer';
 import { HoldContainer } from './holdContainer';
 
+type playerContainerOptions = {
+    visibleNextCount: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
+    blockSizeRate: number,
+    blockTexture: PIXI.Texture,
+    shadowTexture: PIXI.Texture,
+    frameTexture: PIXI.Texture
+};
+
 export class PlayerContainer {
     /**Window */
     window: Window;
@@ -30,10 +38,12 @@ export class PlayerContainer {
     holdContainer: HoldContainer;
 
     /**スコアのスプライト */
-    scoreSprite = new PIXI.Text('000000000000', { fontFamily: 'Arial', fontSize: 20, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
+    scoreSprite = new PIXI.Text('000000000000', { fontFamily: "sans-serif", fontSize: 20, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
+    /**裏のフレームのスプライト */
+    frameSprite: PIXI.Sprite;
 
     /**ブロックのサイズの画面の縦幅に対する割合 */
-    blockSizeRate: number = 1 / 32;
+    blockSizeRate: number;
     /**ブロックのサイズ */
     blockSize: number;
     /**ネクスト・ホールドのブロックのサイズのblockSizeに対する割合 */
@@ -43,16 +53,27 @@ export class PlayerContainer {
     blockTexture: PIXI.Texture;
     /**ミノの影のテクスチャー */
     shadowTexture: PIXI.Texture;
+    /**裏のフレームのテクスチャー */
+    frameTexture: PIXI.Texture;
 
-    constructor(window: Window, gamemaster: Gamemaster, centerXRate: number, centerYRate: number, visibleNextCount: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 = 5, blockTexture: PIXI.Texture = Data.blockTextures.bright, shadowTexture: PIXI.Texture = Data.shadowTextures.roughstone) {
+    constructor(window: Window, gamemaster: Gamemaster, centerXRate: number, centerYRate: number,
+        options: playerContainerOptions = {
+            visibleNextCount: 5,
+            blockSizeRate: 1 / 30,
+            blockTexture: Data.blockTextures.bright,
+            shadowTexture: Data.shadowTextures.roughstone,
+            frameTexture: Data.frameTextures.luxury
+        }) {
         this.window = window;
         this.GM = gamemaster;
         this.centerXRate = centerXRate;
         this.centerYRate = centerYRate;
         this.centerX = this.window.innerWidth * this.centerXRate;
         this.centerY = this.window.innerHeight * this.centerYRate;
-        this.blockTexture = blockTexture;
-        this.shadowTexture = shadowTexture;
+        this.blockSizeRate = options.blockSizeRate;
+        this.blockTexture = options.blockTexture;
+        this.shadowTexture = options.shadowTexture;
+        this.frameTexture = options.frameTexture;
 
         this.blockSize = this.window.innerHeight * this.blockSizeRate;
 
@@ -60,10 +81,13 @@ export class PlayerContainer {
         this.scoreSprite.anchor.set(1, 0);
 
         this.boardContainer = new BoardContainer(this);
-        this.nextContainer = new NextContainer(this, visibleNextCount);
+        this.nextContainer = new NextContainer(this, options.visibleNextCount);
         this.holdContainer = new HoldContainer(this);
 
-        this.container.addChild(this.boardContainer.container, this.nextContainer.container, this.holdContainer.container, this.scoreSprite);
+        this.frameSprite = new PIXI.Sprite(this.frameTexture);
+        this.frameSprite.anchor.set(0.5);
+
+        this.container.addChild(this.frameSprite, this.boardContainer.container, this.nextContainer.container, this.holdContainer.container, this.scoreSprite);
 
         window.addEventListener('resize', () => this.onResize());
         this.onResize();
@@ -89,6 +113,10 @@ export class PlayerContainer {
         this.boardContainer.updatePosition();
         this.nextContainer.updatePosition();
         this.holdContainer.updatePosition();
+
+        this.frameSprite.position.set(this.centerX, this.centerY);
+        this.frameSprite.width = this.window.innerHeight / 10 * 9 / 942 * 654;
+        this.frameSprite.height = this.blockSize * 28;
 
         this.scoreSprite.x = this.centerX + this.blockSize * 5;
         this.scoreSprite.y = this.centerY + this.blockSize * 11;
