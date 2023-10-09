@@ -18,6 +18,8 @@ export class NextContainer {
 
     /**ネクストのブロックのスプライト */
     nextSprites: PIXI.Sprite[][][];
+    /**NEXTの文字のスプライト */
+    nextTextSprite = new PIXI.Text('NEXT', { fontFamily: "sans-serif", fontSize: 26, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
 
     constructor(playerContainer: PlayerContainer, visibleNextCount: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 = 5) {
         this.PC = playerContainer;
@@ -38,6 +40,8 @@ export class NextContainer {
             newNextSprites.push(mino);
         }
         this.nextSprites = newNextSprites;
+
+        this.container.addChild(this.nextTextSprite);
 
         this.updatePosition();
     }
@@ -74,13 +78,15 @@ export class NextContainer {
                 const row = next[rowIndex];
                 for (let collumnIndex = 0; collumnIndex < row.length; collumnIndex++) {
                     const sprite = row[collumnIndex];
-                    sprite.x = this.PC.centerX + this.PC.blockSize * 6 + collumnIndex * this.PC.blockSize;
-                    sprite.y = this.PC.centerY - 10 * this.PC.blockSize + this.PC.blockSize * nextIndex * 4 - rowIndex * this.PC.blockSize + this.PC.blockSize;
-                    sprite.width = this.PC.blockSize;
-                    sprite.height = this.PC.blockSize;
+                    sprite.x = this.PC.centerX + this.PC.blockSize * 5.5 + collumnIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                    sprite.y = this.PC.centerY - 10 * this.PC.blockSize + this.PC.blockSize * this.PC.nextAndHoldSizeRate * nextIndex * 4 - rowIndex * this.PC.blockSize * this.PC.nextAndHoldSizeRate + this.PC.blockSize * this.PC.nextAndHoldSizeRate * 4;
+                    sprite.width = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
+                    sprite.height = this.PC.blockSize * this.PC.nextAndHoldSizeRate;
                 }
             }
         }
+        this.nextTextSprite.x = this.PC.centerX + this.PC.blockSize * 5.5;
+        this.nextTextSprite.y = this.PC.centerY - 10 * this.PC.blockSize;
     }
 
     /**ブロックのテクスチャーを更新する */

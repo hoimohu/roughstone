@@ -153,6 +153,8 @@ export class Turn extends Bag {
             score += 100;
         }
 
+        this.GM.score += score;
+
         // 相殺
         while (0 < attack && 0 < this.GM.damageAmountArray.length) {
             this.GM.damageAmountArray[0] -= attack;
@@ -212,10 +214,15 @@ export class Turn extends Bag {
 
         // ゲームオーバー判定 その2
         if (this.GM.findOverlapingBlocks(nextMino.myPosition)) {
-            // 2. 次のミノが最初からブロックに埋まっていたらゲームオーバー
-            this.GM.gameover();
-            return false;
-        } else if (this.GM.board[39].join('') !== '') {
+            // 2. 次のミノが最初からブロックに埋まっていて、なおかつy+1しても埋まっていたらゲームオーバー
+            nextMino.y++;
+
+            if (this.GM.findOverlapingBlocks(nextMino.myPosition)) {
+                this.GM.gameover();
+                return false;
+            }
+        }
+        if (this.GM.board[39].join('') !== '') {
             // 3. 下から40段目にブロックがあったらゲームオーバー
             this.GM.gameover();
             return false;

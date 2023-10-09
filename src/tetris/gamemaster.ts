@@ -5,6 +5,49 @@ import { Turn } from "./turn";
 
 type iotszlj = 'i' | 'o' | 't' | 's' | 'z' | 'l' | 'j';
 
+type event_softdrop = {
+    type: 'softdrop'
+};
+type event_move = {
+    type: 'move',
+    direction: 'left' | 'right'
+};
+type event_rotate = {
+    type: 'rotate',
+    direction: 'clockwise' | 'counterclockwise'
+};
+type event_hold = {
+    type: 'hold'
+};
+type event_harddrop = {
+    type: 'harddrop'
+};
+type event_nextTurn = {
+    type: 'nextTurn',
+    clearedLinesCount: number,
+    attack: number,
+    perfectClear: boolean,
+    tSpin: boolean,
+    tSpinMini: boolean,
+    ren: number,
+    backToBack: boolean,
+    pushedBlockCount: number
+};
+type event_gameover = {
+    type: 'gameover'
+};
+type event_all = event_softdrop | event_move | event_rotate | event_hold | event_harddrop | event_nextTurn | event_gameover;
+
+type eventListeners = {
+    move: Function[],
+    rotate: Function[],
+    hold: Function[],
+    harddrop: Function[],
+    nextTurn: Function[],
+    all: Function[]
+};
+type eventListnerType = 'move' | 'rotate' | 'hold' | 'harddrop' | 'nextTurn' | 'all';
+
 /**中央制御 */
 export class Gamemaster extends Board {
     /**スコア一覧 */
@@ -64,7 +107,19 @@ export class Gamemaster extends Board {
     /**ターン管理 */
     turn = new Turn(this);
 
-    constructor(controlLoop: boolean = true, ARR: number = 2, DAS: number = 7, DCD: number = 2, SDF: number = 30) {
+    /**event関数に来たobject */
+    eventMessage: object = {};
+
+    eventListeners: eventListeners = {
+        move: [],
+        rotate: [],
+        hold: [],
+        harddrop: [],
+        nextTurn: [],
+        all: []
+    };
+
+    constructor(controlLoop: boolean = true, ARR: number = 1, DAS: number = 8, DCD: number = 2, SDF: number = 30) {
         super();
 
         // 操作クラスのインスタンスを作成
@@ -107,6 +162,18 @@ export class Gamemaster extends Board {
             this.changeCurrentMino(createdMino);
             this.previousMinoByHold = createdMino;
 
+            // ゲームオーバー判定
+            if (this.findOverlapingBlocks(createdMino.myPosition)) {
+                // 次のミノが最初からブロックに埋まっていて、なおかつy+1しても埋まっていたらゲームオーバー
+                createdMino.y++;
+                if (this.findOverlapingBlocks(createdMino.myPosition)) {
+                    this.gameover();
+
+                    // 失敗
+                    return false;
+                }
+            }
+
             // 成功
             return true;
         } else {
@@ -139,6 +206,9 @@ export class Gamemaster extends Board {
     gameover() {
         if (this.gameRunning) {
             this.gameRunning = false;
+            this.event({
+                type: 'gameover'
+            });
         }
     }
 
@@ -150,6 +220,53 @@ export class Gamemaster extends Board {
     }
 
 
-    /**ゲームの装飾用関数 */
-    event(event: object) { }
+    /**何か起こったときの関数 */
+    event(event: event_all) {
+        this.eventMessage = event;
+        switch (event.type) {
+            case 'harddrop': {
+                const array = this.eventListeners.harddrop;
+                for (let index = 0; index < array.length; index++) {
+                    array[index](event);
+                }
+            }
+            case 'softdrop':
+            case 'move': {
+                const array = this.eventListeners.move;
+                for (let index = 0; index < array.length; index++) {
+                    array[index](event);
+                }
+                break;
+            }
+            case 'rotate': {
+                const array = this.eventListeners.rotate;
+                for (let index = 0; index < array.length; index++) {
+                    array[index](event);
+                }
+                break;
+            }
+            case 'hold': {
+                const array = this.eventListeners.hold;
+                for (let index = 0; index < array.length; index++) {
+                    array[index](event);
+                }
+                break;
+            }
+            case 'nextTurn': {
+                const array = this.eventListeners.nextTurn;
+                for (let index = 0; index < array.length; index++) {
+                    array[index](event);
+                }
+                break;
+            }
+        }
+        const array = this.eventListeners.all;
+        for (let index = 0; index < array.length; index++) {
+            array[index](event);
+        }
+    }
+    /**イベントリスナーの追加 */
+    addEventListener(type: eventListnerType, eventFunction: (e: event_all) => any) {
+        this.eventListeners[type].push(eventFunction);
+    }
 }

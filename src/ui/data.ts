@@ -11,13 +11,13 @@ export const minoShapes: { [key: string]: [number, number][] } = {
 };
 /**ブロックの色 */
 export const blockColor = {
-    i: 0x00FFFF,
-    t: 0xDD00DD,
-    s: 0xADFF2F,
-    z: 0xFF0000,
-    j: 0x0000FF,
-    l: 0xFFA500,
-    o: 0xFFFF00,
+    i: 0x33D4FF,
+    t: 0xFF33FF,
+    s: 0x99FF33,
+    z: 0xFF3333,
+    j: 0x3366EE,
+    l: 0xFF8f00,
+    o: 0xFFFF33,
     d: 0xFFFFFF,
     blank: 0x505050
 };
@@ -26,9 +26,13 @@ export const blockTextures = {
     hydrop: PIXI.Texture.from('img/mino_hydrop.png'),
     nidaime: PIXI.Texture.from('img/mino_nidaime.png'),
     hakkiri: PIXI.Texture.from('img/mino_hakkiri.png'),
-    star: PIXI.Texture.from('img/mino_star.png')
+    star: PIXI.Texture.from('img/mino_star.png'),
+    bright: PIXI.Texture.from('img/mino_bright.png')
 };
 /**ミノの影のテクスチャー */
 export const shadowTextures = {
     roughstone: PIXI.Texture.from('img/shadow_roughstone.png')
+};
+export const frameTextures = {
+    luxury: PIXI.Texture.from('img/frame_luxury.png')
 };
