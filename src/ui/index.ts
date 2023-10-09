@@ -1,10 +1,12 @@
 import * as PIXI from 'pixi.js';
 import { Gamemaster } from "../tetris/gamemaster";
 import { PlayerContainer } from "./playerContainer";
+import * as Zokka from "../zokka/ifu_zokka";
 
-let scene: 'startMenu' | 'solo' = 'startMenu';
+let scene: 'startMenu' | 'solo' | 'vsCom' = 'startMenu';
 
-let mainPlayer: Gamemaster;
+let mainPlayer: Gamemaster = new Gamemaster(false);
+let opponentPlayer: Gamemaster = new Gamemaster(false);
 const playerRenderArray: PlayerContainer[] = [];
 
 // PixiJS
@@ -13,27 +15,34 @@ const app = new PIXI.Application<HTMLCanvasElement>({
     resolution: window.devicePixelRatio || 1,
     resizeTo: window
 });
-const fpsText = new PIXI.Text('0fps', { fontFamily: "sans-serif", fontSize: 20, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
+const fpsText = new PIXI.Text('Loading...', { fontFamily: "sans-serif", fontSize: 20, fill: 0xffffff, stroke: 0x000000, strokeThickness: 6 });
 
-app.stage.addChild(fpsText);
-document.body.appendChild(app.view);
+let frameCount = 0;
+let latestFpsTimer = Date.now();
+let pastFps: number[] = [latestFpsTimer];
+let fpsAvarage = 0;
 
-let fpsTimer = 0;
-let FPS = 0;
+setInterval(() => {
+    let total = 0;
+    for (let index = 0; index < pastFps.length; index++) {
+        total += pastFps[index];
+    }
+    fpsAvarage = total / pastFps.length;
+    pastFps = [];
+    if (mainPlayer != null) {
+        fpsText.text = fpsAvarage.toFixed(2) + 'fps\n';
+        fpsText.text += JSON.stringify(mainPlayer.eventMessage).replace(/[\{,\}]/g, '\n');
+    }
+}, 1000);
 
 (function loop() {
-    if (fpsTimer === 0) {
-        setTimeout(() => {
-            FPS = fpsTimer;
-            fpsTimer = 0;
-
-            fpsText.text = FPS + 'fps';
-            if (mainPlayer != null) {
-                fpsText.text += JSON.stringify(mainPlayer.eventMessage);
-            }
-        }, 1000);
+    frameCount++;
+    if (frameCount % 10 === 0) {
+        const now = Date.now();
+        const thisFps = (1000 / ((now - latestFpsTimer) / 10));
+        pastFps.push(thisFps);
+        latestFpsTimer = now;
     }
-    fpsTimer++;
 
     for (let index = 0; index < playerRenderArray.length; index++) {
         playerRenderArray[index].render();
@@ -43,19 +52,23 @@ let FPS = 0;
 
 const startMenuContainer = new PIXI.Container();
 const solo_button = PIXI.Sprite.from('img/button_solo.png');
-const vs_button = PIXI.Sprite.from('img/button_vs.png');
 solo_button.eventMode = 'static';
 solo_button.addEventListener('click', startSolo);
+const vs_button = PIXI.Sprite.from('img/button_vs.png');
+vs_button.eventMode = 'static';
+vs_button.addEventListener('click', startVS);
 startMenuContainer.addChild(solo_button, vs_button);
 
 const backgroundSprite = PIXI.Sprite.from('img/background.png');
 backgroundSprite.anchor.set(0.5, 0.5);
-app.stage.addChild(backgroundSprite);
+
+app.stage.addChild(backgroundSprite, fpsText);
+
+document.body.appendChild(app.view);
 
 function startSolo() {
     {
         if (scene === 'startMenu') {
-            destroyPlayerRenders();
             app.stage.removeChild(startMenuContainer);
             scene = 'solo';
             mainPlayer = new Gamemaster();
@@ -76,6 +89,86 @@ function startSolo() {
     }
 }
 
+function startVS() {
+    if (scene === 'startMenu' || scene === 'vsCom') {
+        app.stage.removeChild(startMenuContainer);
+        if (scene === 'vsCom') {
+            mainPlayer.pause;
+            destroyPlayerRenders();
+        }
+        scene = 'vsCom';
+        mainPlayer = new Gamemaster();
+        const mainRender = new PlayerContainer(window, mainPlayer, 1 / 4, 1 / 30 * 14);
+        playerRenderArray.push(mainRender);
+
+        opponentPlayer = new Gamemaster();
+        const comRender = new PlayerContainer(window, opponentPlayer, 3 / 4, 1 / 30 * 14);
+        playerRenderArray.push(comRender);
+
+        app.stage.addChild(mainRender.container, comRender.container);
+
+        mainPlayer.start();
+        opponentPlayer.start();
+
+        mainPlayer.addEventListener('nextTurn', e => {
+            if (e.type === 'nextTurn') {
+                opponentPlayer.damageAmountArray.push(e.attack);
+            }
+        });
+        opponentPlayer.addEventListener('nextTurn', e => {
+            if (e.type === 'nextTurn') {
+                mainPlayer.damageAmountArray.push(e.attack);
+            }
+        });
+
+        let running = true;
+        let result = {
+            finish: true,
+            score: 0,
+            mino: new Zokka.zokmino('t', new Zokka.zokfield(0, 0)),
+            hold: false,
+            clearline: 0,
+            testlog: 0
+        };
+
+        (function comLoop() {
+            setTimeout(() => {
+                if (running) {
+                    if (result.finish) {
+                        result = Zokka.simulation(opponentPlayer.board.map(a => [...a]).reverse().splice(opponentPlayer.board.length - 20, 20), opponentPlayer.currentMino.minoType, opponentPlayer.turn.nextMinos[0], opponentPlayer.holdMino);
+
+                        if (result.mino.type.match(/[io]/)) {
+                            result.mino.x--;
+                        }
+                    } else {
+                        if (result.hold) {
+                            opponentPlayer.control.holdKey();
+                            result.finish = true;
+                        } else if (result.mino.angle !== opponentPlayer.currentMino.minoDirection) {
+                            opponentPlayer.control.rotateClockwise();
+                        } else if (result.mino.x !== opponentPlayer.currentMino.x) {
+                            if (result.mino.x < opponentPlayer.currentMino.x) {
+                                opponentPlayer.currentMino.moveHorizontally('left');
+                            } else if (opponentPlayer.currentMino.x < result.mino.x) {
+                                opponentPlayer.currentMino.moveHorizontally('right');
+                            }
+                        } else {
+                            opponentPlayer.control.harddropKey();
+                            result.finish = true;
+                        }
+                    }
+                    if (mainPlayer.gameRunning && opponentPlayer.gameRunning) {
+                        comLoop();
+                    } else {
+                        mainPlayer.gameRunning = false;
+                        opponentPlayer.gameRunning = false;
+                    }
+                }
+            }, 50);
+        })();
+    }
+}
+
 function destroyPlayerRenders() {
     const playerRenders = [];
     while (playerRenderArray.length !== 0) {
@@ -88,6 +181,10 @@ function destroyPlayerRenders() {
 }
 
 function startMenu() {
+    mainPlayer.pause();
+    opponentPlayer.pause;
+    destroyPlayerRenders();
+    scene = 'startMenu';
     app.stage.addChild(startMenuContainer);
 }
 
@@ -139,13 +236,16 @@ document.addEventListener('keydown', e => {
             case 'r':
                 if (scene === 'solo') {
                     startSolo();
+                } else if (scene === 'vsCom') {
+                    startVS();
                 }
                 break;
             case 'Escape':
-                if (scene === 'solo') {
-                    mainPlayer.pause();
-                    destroyPlayerRenders();
-                    startMenu();
+                switch (scene) {
+                    case 'solo':
+                    case 'vsCom':
+                        startMenu();
+                        break;
                 }
                 break;
         }

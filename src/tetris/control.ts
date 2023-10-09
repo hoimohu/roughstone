@@ -207,7 +207,8 @@ export class Control {
                     }
 
                     this.GM.event({
-                        type: 'move' + this.moveDirection
+                        type: 'move',
+                        direction: this.moveDirection
                     });
                 }
             }
@@ -233,7 +234,8 @@ export class Control {
                 }
 
                 this.GM.event({
-                    type: 'rotateClockwise'
+                    type: 'rotate',
+                    direction:'clockwise'
                 });
             }
         }
@@ -257,7 +259,8 @@ export class Control {
                 }
 
                 this.GM.event({
-                    type: 'rotateCounterclockwise'
+                    type: 'rotate',
+                    direction:'counterclockwise'
                 });
             }
         }
