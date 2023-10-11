@@ -190,8 +190,8 @@ function startMenu() {
 
 function resize() {
     backgroundSprite.position.set(window.innerWidth / 2, window.innerHeight / 2);
-    backgroundSprite.width = window.innerHeight * 2 / 9 * 16;
-    backgroundSprite.height = window.innerHeight * 2;
+    backgroundSprite.width = window.innerHeight * 1 / 9 * 16;
+    backgroundSprite.height = window.innerHeight * 1;
 
     solo_button.x = innerWidth - 700;
     solo_button.y = innerHeight / 5 * 2;
