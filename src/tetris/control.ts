@@ -76,11 +76,16 @@ export class Control {
         this.GM = gamemaster;
     }
 
-    /**操作制御のループ */
+    /**操作制御の自動ループ */
     controlLoop() {
         // requestAnimationFrameで実行
-        requestAnimationFrame(() => this.loopFunction());
+        requestAnimationFrame(() => {
+            this.loopFunction();
+            this.controlLoop();
+        });
     }
+
+    /**操作制御のループ関数（ここをループするべし） */
     loopFunction() {
         if (this.GM.gameRunning && !this.GM.currentMino.locked) {
             if (0 < this.waitFrames) {
@@ -164,7 +169,6 @@ export class Control {
             }
             this.GM.controlLoopedCount++;
         }
-        this.controlLoop();
     }
 
     /**次のターンへ */
@@ -235,7 +239,7 @@ export class Control {
 
                 this.GM.event({
                     type: 'rotate',
-                    direction:'clockwise'
+                    direction: 'clockwise'
                 });
             }
         }
@@ -260,7 +264,7 @@ export class Control {
 
                 this.GM.event({
                     type: 'rotate',
-                    direction:'counterclockwise'
+                    direction: 'counterclockwise'
                 });
             }
         }
