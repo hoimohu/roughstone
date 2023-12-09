@@ -3,10 +3,12 @@ import { Control } from "./control";
 import { Mino } from "./mino";
 import { Turn } from "./turn";
 
+
 type iotszlj = 'i' | 'o' | 't' | 's' | 'z' | 'l' | 'j';
 
 type event_softdrop = {
-    type: 'softdrop'
+    type: 'softdrop',
+    pressingDown: boolean
 };
 type event_move = {
     type: 'move',
@@ -47,6 +49,7 @@ type eventListeners = {
     all: Function[]
 };
 type eventListnerType = 'move' | 'rotate' | 'hold' | 'harddrop' | 'nextTurn' | 'all';
+
 
 /**中央制御 */
 export class Gamemaster extends Board {
@@ -119,6 +122,14 @@ export class Gamemaster extends Board {
         all: []
     };
 
+    /**
+     * ゲームの初期化
+     * @param controlLoop 自動Loopを有効にする（初期値:true）
+     * @param ARR ARRの値（初期値:1）
+     * @param DAS DASの値（初期値:8）
+     * @param DCD DCDの値（初期値:2）
+     * @param SDF SDFの値（初期値:30）
+     */
     constructor(controlLoop: boolean = true, ARR: number = 1, DAS: number = 8, DCD: number = 2, SDF: number = 30) {
         super();
 
@@ -212,7 +223,10 @@ export class Gamemaster extends Board {
         }
     }
 
-    /**スコアを増やす */
+    /**
+     * スコアを増やす
+     * @param score スコア増加分
+     */
     increaseScore(score: number) {
         if (this.gameRunning) {
             this.score += score;

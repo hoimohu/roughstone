@@ -23,7 +23,12 @@ export class Board {
         this.board = newBoardData;
     }
 
-    /**引数の座標にブロックが存在するか調べる */
+    /**
+     * 引数の座標にブロックが存在するか調べる
+     * @param x 調査する盤面のx座標（0が左端）
+     * @param y 調査する盤面のy座標（0が底面）
+     * @returns ブロックがある、または盤面外ならtrue、ないならfalse
+     */
     isBlock(x: number, y: number) {
         if (x < 0 || y < 0 || this.width <= x || this.height <= y) {
             // 検証する座標が盤面外だった場合
@@ -36,7 +41,7 @@ export class Board {
             return false;
         }
     }
-    
+
     /**引数の座標にブロックが存在するかを調べる */
     findOverlapingBlocks(blocksCoordinates: coordinatesArray) {
         let result: boolean = false;
@@ -51,7 +56,7 @@ export class Board {
     }
 
     /**引数の座標にブロックを設置する */
-    fill(coordinates: [number,number][], type: string) {
+    fill(coordinates: coordinatesArray, type: string) {
         for (let i = 0; i < coordinates.length; i++) {
             const e = coordinates[i];
             this.board[e[1]][e[0]] = type;

@@ -159,7 +159,8 @@ export class Control {
                         }
 
                         this.GM.event({
-                            type: 'softdrop'
+                            type: 'softdrop',
+                            pressingDown: this.pressingDown
                         });
                     } else {
                         // ソフトドロップ失敗なら設置
